@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chinnu Store</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: #eef2f7;
+}
+
+/* HEADER */
+header {
+    background: #0f172a;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 26px;
+}
+
+nav button {
+    margin: 5px;
+}
+
+/* SECTIONS */
+.section { display: none; padding: 20px; }
+.active { display: block; }
+
+/* PRODUCTS */
+.products {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.product {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.product img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.add { background: green; color: white; width: 100%; }
+
+/* CART */
+.cart {
+    margin-top: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+/* REVIEWS */
+.review-box {
+    background: white;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+/* INPUTS */
+input, textarea {
+    width: 250px;
+    padding: 8px;
+    margin: 5px 0;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+🛍️ CHINNU STORE
+<nav>
+<button onclick="showSection('shop')">🏠 Shop</button>
+<button onclick="showSection('orders')">📦 Orders</button>
+<button onclick="showSection('about')">🏪 About</button>
+<button onclick="showSection('reviews')">⭐ Reviews</button>
+</nav>
+</header>
+
+<!-- SHOP -->
+<div id="shop" class="section active">
+<h2>Products</h2>
+<div class="products" id="productList"></div>
+
+<div class="cart">
+<h3>🛒 Cart</h3>
+<div id="cartItems"></div>
+Total: ₹<span id="total">0</span><br>
+<button onclick="goToPayment()">Pay</button>
+</div>
+</div>
+
+<!-- PAYMENT -->
+<div id="payment" class="section">
+<h2>💳 Payment</h2>
+<input placeholder="Card Number">
+<input placeholder="Name">
+<input placeholder="Expiry">
+<input placeholder="CVV">
+<br>
+<button onclick="completePayment()">Pay Now</button>
+</div>
+
+<!-- ORDERS -->
+<div id="orders" class="section">
+<h2>📦 Order History</h2>
+<div id="orderList"></div>
+</div>
+
+<!-- ABOUT -->
+<div id="about" class="section">
+<h2>🏪 About Chinnu Store</h2>
+<p>
+Welcome to <b>Chinnu Store</b> — your one-stop destination for style, gadgets, and everyday essentials.
+We believe shopping should be simple, fast, and fun.  
+From trendy fashion to cool tech, we bring hand-picked products just for you.
+</p>
+<p>
+Our mission? Deliver quality with a smile 😄 and make every click worth it.
+</p>
+</div>
+
+<!-- REVIEWS -->
+<div id="reviews" class="section">
+<h2>⭐ Customer Reviews</h2>
+
+<div id="reviewList"></div>
+
+<h3>Add Review</h3>
+<input id="name" placeholder="Your Name">
+<textarea id="message" placeholder="Your Review"></textarea>
+<br>
+<button onclick="addReview()">Submit</button>
+</div>
+
+<script>
+const products = [
+{ id:1,name:"Shoes",price:1500,img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff"},
+{ id:2,name:"Watch",price:2000,img:"https://images.unsplash.com/photo-1523170335258-f5ed11844a49"},
+{ id:3,name:"T-Shirt",price:800,img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"},
+{ id:4,name:"Headphones",price:1200,img:"https://images.unsplash.com/photo-1518441902110-6a7a0e2f3c2a"},
+{ id:5,name:"Backpack",price:1000,img:"https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb"},
+{ id:6,name:"Sunglasses",price:600,img:"https://images.unsplash.com/photo-1511499767150-a48a237f0083"},
+{ id:7,name:"Laptop",price:50000,img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8"},
+{ id:8,name:"Phone",price:30000,img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"},
+{ id:9,name:"Gaming Mouse",price:1500,img:"https://images.unsplash.com/photo-1587202372775-e229f172b9d7"},
+{ id:10,name:"Keyboard",price:2000,img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8"}
+];
+
+let cart=[];
+
+function displayProducts(){
+let list=document.getElementById("productList");
+list.innerHTML="";
+products.forEach(p=>{
+list.innerHTML+=`
+<div class="product">
+<img src="${p.img}">
+<h3>${p.name}</h3>
+<p>₹${p.price}</p>
+<button class="add" onclick="addToCart(${p.id})">Add</button>
+</div>`;
+});
+}
+
+function addToCart(id){
+cart.push(products.find(p=>p.id===id));
+updateCart();
+}
+
+function updateCart(){
+let total=0;
+let div=document.getElementById("cartItems");
+div.innerHTML="";
+cart.forEach((i,index)=>{
+total+=i.price;
+div.innerHTML+=`${i.name} ₹${i.price} <button onclick="cart.splice(${index},1);updateCart()">X</button><br>`;
+});
+document.getElementById("total").innerText=total;
+}
+
+function goToPayment(){
+showSection('payment');
+}
+
+function completePayment(){
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+orders.push({items:cart,total:cart.reduce((s,i)=>s+i.price,0)});
+localStorage.setItem("orders",JSON.stringify(orders));
+cart=[];
+updateCart();
+alert("Payment Successful!");
+showOrders();
+}
+
+function showOrders(){
+showSection('orders');
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+let div=document.getElementById("orderList");
+div.innerHTML="";
+orders.forEach(o=>{
+div.innerHTML+=`<div class="review-box">Total ₹${o.total}<br>${o.items.map(i=>i.name).join(", ")}</div>`;
+});
+}
+
+function showSection(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+/* REVIEWS */
+function addReview(){
+let name=document.getElementById("name").value;
+let msg=document.getElementById("message").value;
+
+if(name && msg){
+let reviews=JSON.parse(localStorage.getItem("reviews"))||[];
+reviews.push({name,msg});
+localStorage.setItem("reviews",JSON.stringify(reviews));
+displayReviews();
+}
+}
+
+function displayReviews(){
+let reviews=JSON.parse(localStorage.getItem("reviews"))||[];
+let div=document.getElementById("reviewList");
+div.innerHTML="";
+reviews.forEach(r=>{
+div.innerHTML+=`<div class="review-box"><b>${r.name}</b><br>${r.msg}</div>`;
+});
+}
+
+displayProducts();
+displayReviews();
+</script>
+
+</body>
+</html>
